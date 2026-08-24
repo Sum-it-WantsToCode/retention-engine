@@ -8,3 +8,12 @@ export const retentionPolicies = pgTable("retention_policies", {
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const mockFiles = pgTable('mock_files', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  fileName: text('file_name').notNull(),
+  fileType: text('file_type').notNull(),
+
+  uploadedAt: timestamp('uploaded_at').defaultNow().notNull(), 
+});
