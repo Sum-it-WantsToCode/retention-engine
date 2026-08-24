@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { retentionPolicies } from '../db/schema';
-import { createPolicy } from './actions';
+import { createPolicy, deletePolicy } from './actions';
 
 export default async function Dashboard() {
   const policies = await db.select().from(retentionPolicies);
@@ -12,7 +12,7 @@ export default async function Dashboard() {
         <p className="text-gray-600 mb-8">Automate your digital cleanup based on custom rules.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
+          {/* Form Section */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h2 className="text-xl font-semibold mb-4">Create New Rule</h2>
             <form action={createPolicy} className="flex flex-col gap-4">
@@ -29,7 +29,7 @@ export default async function Dashboard() {
               </button>
             </form>
           </div>
-
+          {/* Active Policies Section */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h2 className="text-xl font-semibold mb-4">Active Policies</h2>
             {policies.length === 0 ? (
@@ -37,9 +37,20 @@ export default async function Dashboard() {
             ) : (
               <ul className="space-y-3">
                 {policies.map((policy) => (
-                  <li key={policy.id} className="p-3 bg-gray-50 border rounded-md flex justify-between">
-                    <span className="font-medium">{policy.fileType}</span>
-                    <span className="text-gray-600">Delete after {policy.retentionDays} days</span>
+                  <li key={policy.id} className="p-3 bg-gray-50 border rounded-md flex justify-between items-center">
+                    <div>
+                      <span className="font-medium block">{policy.fileType}</span>
+                      <span className="text-gray-600 text-sm">Delete after {policy.retentionDays} days</span>
+                    </div>
+                    
+                    {/* New Delete Button Form */}
+                    <form action={deletePolicy}>
+                      <input type="hidden" name="id" value={policy.id} />
+                      <button type="submit" className="text-red-600 hover:text-red-800 font-medium text-sm px-3 py-1 bg-red-50 hover:bg-red-100 rounded transition">
+                        Delete
+                      </button>
+                    </form>
+                    
                   </li>
                 ))}
               </ul>
