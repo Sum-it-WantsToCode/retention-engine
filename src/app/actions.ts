@@ -33,3 +33,8 @@ export async function generateMockFile(formData: FormData) {
 
   revalidatePath('/');
 }
+
+export async function manualRunEngine() {
+  await fetch('http://localhost:3000/api/cron', { method: 'GET' });
+  revalidatePath('/');
+}
