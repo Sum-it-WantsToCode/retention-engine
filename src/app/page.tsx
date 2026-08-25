@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { retentionPolicies, mockFiles } from '../db/schema';
-import { createPolicy, deletePolicy, generateMockFile } from './actions';
+import { createPolicy, deletePolicy, generateMockFile, manualRunEngine } from './actions';
 import Navbar from '../components/Navbar';
 
 export default async function Dashboard() {
@@ -56,10 +56,17 @@ export default async function Dashboard() {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Simulated File System</h2>
-            <form action={generateMockFile} className="flex gap-2">
-              <input type="hidden" name="fileType" value="Screenshots" />
-              <button type="submit" className="bg-gray-800 text-white text-sm px-4 py-2 rounded">+ Generate Old Screenshot</button>
-            </form>
+            <div className="flex gap-2">
+              <form action={generateMockFile}>
+                <input type="hidden" name="fileType" value="Screenshots" />
+                <button type="submit" className="bg-gray-800 text-white text-sm px-4 py-2 rounded">+ Old Screenshot</button>
+              </form>
+              <form action={manualRunEngine}>
+                <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-bold text-sm px-4 py-2 rounded shadow flex items-center gap-2 transition">
+                  ⚡ Run Engine Now
+                </button>
+              </form>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
