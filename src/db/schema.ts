@@ -17,3 +17,9 @@ export const mockFiles = pgTable('mock_files', {
 
   uploadedAt: timestamp('uploaded_at').defaultNow().notNull(), 
 });
+
+export const auditLogs = pgTable('audit_logs', {
+  id: serial('id').primaryKey(),
+  message: text('message').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
