@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '../db';
-import { retentionPolicies, mockFiles } from '../db/schema';
+import { retentionPolicies, mockFiles, auditLogs } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -36,5 +36,10 @@ export async function generateMockFile(formData: FormData) {
 
 export async function manualRunEngine() {
   await fetch('http://localhost:3000/api/cron', { method: 'GET' });
+  revalidatePath('/');
+}
+
+export async function clearLogs() {
+  await db.delete(auditLogs);
   revalidatePath('/');
 }
