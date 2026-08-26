@@ -1,14 +1,16 @@
 import { db } from '../db';
-import { retentionPolicies, mockFiles } from '../db/schema';
-import { createPolicy, deletePolicy, generateMockFile, manualRunEngine } from './actions';
+import { retentionPolicies, mockFiles, auditLogs } from '../db/schema';
+import { createPolicy, deletePolicy, generateMockFile, manualRunEngine, clearLogs } from './actions';
 import Navbar from '../components/Navbar';
 
 export default async function Dashboard() {
   const policies = await db.select().from(retentionPolicies);
   const files = await db.select().from(mockFiles);
+  const logs = await db.select().from(auditLogs); 
+  const displayLogs = logs.reverse();
 
   return (
-    <main className="min-h-screen bg-gray-50 text-gray-900">
+    <main className="min-h-screen bg-gray-50 text-gray-900 pb-12">
       <Navbar /> 
       
       <div className="p-8 max-w-4xl mx-auto space-y-8">
@@ -18,7 +20,6 @@ export default async function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h2 className="text-xl font-semibold mb-4">Create New Rule</h2>
             <form action={createPolicy} className="flex flex-col gap-4">
@@ -63,7 +64,7 @@ export default async function Dashboard() {
               </form>
               <form action={manualRunEngine}>
                 <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-bold text-sm px-4 py-2 rounded shadow flex items-center gap-2 transition">
-                  ⚡ Run Engine Now
+                  ⚡ Run Engine Now ⚡
                 </button>
               </form>
             </div>
@@ -77,6 +78,28 @@ export default async function Dashboard() {
                 <div className="text-xs text-gray-500 mt-1">{file.uploadedAt.toLocaleDateString()}</div>
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="bg-gray-900 text-green-400 p-6 rounded-lg shadow-sm font-mono text-sm">
+          <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+            <h2 className="text-lg font-semibold text-white">Engine Activity Terminal</h2>
+            <form action={clearLogs}>
+              <button type="submit" className="text-gray-400 hover:text-white text-xs px-2 py-1 bg-gray-800 rounded">Clear Logs</button>
+            </form>
+          </div>
+          
+          <div className="space-y-2 h-40 overflow-y-auto">
+            {displayLogs.length === 0 ? (
+              <p className="text-gray-500">Waiting for engine cycles...</p>
+            ) : (
+              displayLogs.map((log) => (
+                <div key={log.id} className="flex gap-4">
+                  <span className="text-gray-500">[{log.createdAt.toLocaleTimeString()}]</span>
+                  <span>{log.message}</span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
