@@ -24,10 +24,13 @@ export async function generateMockFile(formData: FormData) {
   const pastDate = new Date();
   pastDate.setDate(pastDate.getDate() - 40);
 
+  const randomSize = Math.floor(Math.random() * 20) + 1;
+
   await db.insert(mockFiles).values({
-    userId: "test_user_1",
+    userId: "Sumit",
     fileName: `old_${fileType.toLowerCase()}_${Math.floor(Math.random() * 1000)}.png`,
     fileType,
+    fileSize: randomSize,
     uploadedAt: pastDate,
   });
 
