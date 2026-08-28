@@ -14,7 +14,7 @@ export const mockFiles = pgTable('mock_files', {
   userId: text('user_id').notNull(),
   fileName: text('file_name').notNull(),
   fileType: text('file_type').notNull(),
-
+  fileSize: integer('file_size').default(5).notNull(), 
   uploadedAt: timestamp('uploaded_at').defaultNow().notNull(), 
 });
 
