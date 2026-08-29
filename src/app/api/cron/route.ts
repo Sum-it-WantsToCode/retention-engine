@@ -5,7 +5,7 @@ import { eq, lt, and } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    const policies = await db.select().from(retentionPolicies);
+    const policies = await db.select().from(retentionPolicies).where(eq(retentionPolicies.isActive, true)); 
     let totalDeleted = 0;
 
     for (const policy of policies) {
