@@ -1,8 +1,9 @@
 import { db } from '../db';
 import { retentionPolicies, mockFiles, auditLogs } from '../db/schema';
-import { createPolicy, deletePolicy, generateMockFile, manualRunEngine, clearLogs } from './actions';
+import { createPolicy, deletePolicy, generateMockFile, manualRunEngine, clearLogs, togglePolicy } from './actions';
 import Navbar from '../components/Navbar';
 import StatCard from '../components/StatCard';
+import PolicyBadge from '../components/PolicyBadge'; 
 
 export default async function Dashboard() {
   const policies = await db.select().from(retentionPolicies);
@@ -51,25 +52,44 @@ export default async function Dashboard() {
             </form>
           </div>
           
+          {/* Active Policies List */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h2 className="text-xl font-semibold mb-4">Active Policies</h2>
             <ul className="space-y-3">
               {policies.map((policy) => (
-                <li key={policy.id} className="p-3 bg-gray-50 border rounded-md flex justify-between items-center">
+                <li key={policy.id} className="p-3 bg-gray-50 border rounded-md flex justify-between items-center transition hover:bg-gray-100">
                   <div>
-                    <span className="font-medium block">{policy.fileType}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-gray-900">{policy.fileType}</span>
+                      <PolicyBadge isActive={policy.isActive} />
+                    </div>
                     <span className="text-gray-600 text-sm">Delete after {policy.retentionDays} days</span>
                   </div>
-                  <form action={deletePolicy}>
-                    <input type="hidden" name="id" value={policy.id} />
-                    <button type="submit" className="text-red-600 text-sm px-3 py-1 bg-red-50 rounded">Delete</button>
-                  </form>
+                  
+                  {/* Action Buttons Container */}
+                  <div className="flex gap-2">
+                    <form action={togglePolicy}>
+                      <input type="hidden" name="id" value={policy.id} />
+                      <input type="hidden" name="isActive" value={policy.isActive.toString()} />
+                      <button type="submit" className="text-gray-600 hover:text-gray-900 text-sm px-3 py-1 bg-white border border-gray-200 shadow-sm rounded transition">
+                        {policy.isActive ? 'Pause' : 'Resume'}
+                      </button>
+                    </form>
+                    
+                    <form action={deletePolicy}>
+                      <input type="hidden" name="id" value={policy.id} />
+                      <button type="submit" className="text-red-600 hover:text-red-800 text-sm px-3 py-1 bg-red-50 hover:bg-red-100 rounded transition">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
                 </li>
               ))}
-            </ul>
+              </ul>
           </div>
         </div>
-      
+
+        {/* Simulated File System */} 
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Simulated File System</h2>
