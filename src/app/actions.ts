@@ -46,3 +46,14 @@ export async function clearLogs() {
   await db.delete(auditLogs);
   revalidatePath('/');
 }
+
+export async function togglePolicy(formData: FormData) {
+  const id = parseInt(formData.get('id') as string);
+
+  const currentStatus = formData.get('isActive') === 'true'; 
+  await db.update(retentionPolicies)
+    .set({ isActive: !currentStatus })
+    .where(eq(retentionPolicies.id, id));
+
+  revalidatePath('/');
+}
