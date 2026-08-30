@@ -3,6 +3,8 @@ import { retentionPolicies, mockFiles, auditLogs } from '../db/schema';
 import { createPolicy, deletePolicy, generateMockFile, manualRunEngine, clearLogs, togglePolicy, resetWorkspace } from './actions';
 import Navbar from '../components/Navbar';
 import StatCard from '../components/StatCard';
+import StorageBar from '../components/StorageBar';
+import PolicyBadge from '../components/PolicyBadge';
 
 export default async function Dashboard() {
   const policies = await db.select().from(retentionPolicies);
