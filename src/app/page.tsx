@@ -1,8 +1,10 @@
 import { db } from '../db';
 import { retentionPolicies, mockFiles, auditLogs } from '../db/schema';
-import { createPolicy, deletePolicy, generateMockFile, manualRunEngine, clearLogs } from './actions';
+import { createPolicy, deletePolicy, generateMockFile, manualRunEngine, clearLogs, togglePolicy, resetWorkspace } from './actions';
 import Navbar from '../components/Navbar';
 import StatCard from '../components/StatCard';
+import PolicyBadge from '../components/PolicyBadge';
+import StorageBar from '../components/StorageBar';
 
 export default async function Dashboard() {
   const policies = await db.select().from(retentionPolicies);
@@ -15,6 +17,7 @@ export default async function Dashboard() {
   const totalFiles = files.length;
   const totalStorageMb = files.reduce((sum, file) => sum + file.fileSize, 0);
   const totalEngineRuns = logs.length;
+  const STORAGE_LIMIT_MB = 200;
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 pb-12">
@@ -34,6 +37,9 @@ export default async function Dashboard() {
           <StatCard title="Engine Actions" value={totalEngineRuns} icon="⚡" />
         </div>
 
+        {/* Storage Capacity Progress Bar */}
+        <StorageBar usedMb={totalStorageMb} maxMb={STORAGE_LIMIT_MB} />
+
         {/* Policy Management and File System */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -51,25 +57,44 @@ export default async function Dashboard() {
             </form>
           </div>
           
+          {/* Active Policies List */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h2 className="text-xl font-semibold mb-4">Active Policies</h2>
             <ul className="space-y-3">
               {policies.map((policy) => (
-                <li key={policy.id} className="p-3 bg-gray-50 border rounded-md flex justify-between items-center">
+                <li key={policy.id} className="p-3 bg-gray-50 border rounded-md flex justify-between items-center transition hover:bg-gray-100">
                   <div>
-                    <span className="font-medium block">{policy.fileType}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-gray-900">{policy.fileType}</span>
+                      <PolicyBadge isActive={policy.isActive} />
+                    </div>
                     <span className="text-gray-600 text-sm">Delete after {policy.retentionDays} days</span>
                   </div>
-                  <form action={deletePolicy}>
-                    <input type="hidden" name="id" value={policy.id} />
-                    <button type="submit" className="text-red-600 text-sm px-3 py-1 bg-red-50 rounded">Delete</button>
-                  </form>
+                  
+                  {/* Action Buttons Container */}
+                  <div className="flex gap-2">
+                    <form action={togglePolicy}>
+                      <input type="hidden" name="id" value={policy.id} />
+                      <input type="hidden" name="isActive" value={policy.isActive.toString()} />
+                      <button type="submit" className="text-gray-600 hover:text-gray-900 text-sm px-3 py-1 bg-white border border-gray-200 shadow-sm rounded transition">
+                        {policy.isActive ? 'Pause' : 'Resume'}
+                      </button>
+                    </form>
+                    
+                    <form action={deletePolicy}>
+                      <input type="hidden" name="id" value={policy.id} />
+                      <button type="submit" className="text-red-600 hover:text-red-800 text-sm px-3 py-1 bg-red-50 hover:bg-red-100 rounded transition">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
                 </li>
               ))}
-            </ul>
+              </ul>
           </div>
         </div>
-      
+
+        {/* Simulated File System */} 
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Simulated File System</h2>
@@ -83,8 +108,35 @@ export default async function Dashboard() {
                   ⚡ Run Engine Now
                 </button>
               </form>
+            
+              {/* NEW: Danger Zone Button */}
+              <form action={resetWorkspace}>
+                <button type="submit" className="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm px-4 py-2 rounded border border-red-200 transition">
+                  Clear All Data
+                </button>
+              </form>
             </div>
           </div>
+         
+          {/* NEW: Professional Empty State */}
+          {files.length === 0 ? (
+            <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+              <p className="text-lg mb-1">No files in workspace</p>
+              <p className="text-sm">Click "+ Mock File" to generate test data.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {files.map((file) => (
+                <div key={file.id} className="p-4 border rounded bg-gray-50 text-center transition hover:border-gray-300 shadow-sm hover:shadow">
+                  <div className="text-3xl mb-2">📄</div>
+                  <div className="font-medium text-sm truncate">{file.fileName}</div>
+                  <div className="text-xs text-gray-500 mt-1">{file.uploadedAt.toLocaleDateString()}</div>
+                  <div className="text-xs font-bold text-blue-600 mt-1">{file.fileSize} MB</div>
+                </div>
+              ))}
+            </div>
+          )}
+        
         
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {files.map((file) => (
