@@ -57,3 +57,16 @@ export async function togglePolicy(formData: FormData) {
 
   revalidatePath('/');
 }
+
+export async function resetWorkspace() {
+  // Wipes all mock files and audit logs from the database
+  await db.delete(mockFiles);
+  await db.delete(auditLogs);
+  
+  // Log the action itself so the user knows what happened
+  await db.insert(auditLogs).values({
+    message: `⚠️ Workspace environment was manually reset by admin.`
+  });
+
+  revalidatePath('/');
+}
