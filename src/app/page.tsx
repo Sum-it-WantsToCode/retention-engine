@@ -5,12 +5,27 @@ import Navbar from '../components/Navbar';
 import StatCard from '../components/StatCard';
 import StorageBar from '../components/StorageBar';
 import PolicyBadge from '../components/PolicyBadge';
+import { ilike, or } from 'drizzle-orm';
+import SearchBar from '../components/SearchBar';
 
-export default async function Dashboard() {
+// Accept searchParams from the URL
+export default async function Dashboard({ searchParams }: { searchParams: { search?: string } }) {
   const policies = await db.select().from(retentionPolicies);
-  const files = await db.select().from(mockFiles);
   const logs = await db.select().from(auditLogs); 
   const displayLogs = logs.reverse();
+
+  // Search Filtering Logic
+  const searchTerm = searchParams?.search;
+  const files = await db.select()
+    .from(mockFiles)
+    .where(
+      searchTerm 
+        ? or(
+            ilike(mockFiles.fileName, `%${searchTerm}%`),
+            ilike(mockFiles.fileType, `%${searchTerm}%`)
+          )
+        : undefined
+    );
 
   // JavaScript Math to calculate our dashboard stats
   const totalPolicies = policies.length;
@@ -109,7 +124,7 @@ export default async function Dashboard() {
                 </button>
               </form>
             
-              {/* NEW: Danger Zone Button */}
+              {/* Danger Zone Button */}
               <form action={resetWorkspace}>
                 <button type="submit" className="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm px-4 py-2 rounded border border-red-200 transition">
                   Clear All Data
@@ -117,8 +132,10 @@ export default async function Dashboard() {
               </form>
             </div>
           </div>
+
+          <SearchBar />
          
-          {/* NEW: Professional Empty State */}
+          {/* Professional Empty State */}
           {files.length === 0 ? (
             <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
               <p className="text-lg mb-1">No files in workspace</p>
@@ -154,6 +171,10 @@ export default async function Dashboard() {
         <div className="bg-gray-900 text-green-400 p-6 rounded-lg shadow-sm font-mono text-sm">
           <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
             <h2 className="text-lg font-semibold text-white">Engine Activity Terminal</h2>
+              {/* Export CSV Button */}
+              <a href="/api/export" className="text-blue-400 hover:text-blue-300 text-xs px-2 py-1 bg-gray-800 rounded border border-gray-700">
+                Download CSV
+              </a>
             <form action={clearLogs}>
               <button type="submit" className="text-gray-400 hover:text-white text-xs px-2 py-1 bg-gray-800 rounded">Clear Logs</button>
             </form>
