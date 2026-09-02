@@ -1,3 +1,4 @@
+import { auth } from '@clerk/nextjs/server';
 import { db } from '../db';
 import { retentionPolicies, mockFiles, auditLogs } from '../db/schema';
 import { createPolicy, deletePolicy, generateMockFile, manualRunEngine, clearLogs, togglePolicy, resetWorkspace } from './actions';
@@ -10,6 +11,7 @@ import SearchBar from '../components/SearchBar';
 
 // Accept searchParams from the URL
 export default async function Dashboard({ searchParams }: { searchParams: { search?: string } }) {
+  await auth.protect();
   const policies = await db.select().from(retentionPolicies);
   const logs = await db.select().from(auditLogs); 
   const displayLogs = logs.reverse();
