@@ -10,14 +10,15 @@ import { ilike, or } from 'drizzle-orm';
 import SearchBar from '../components/SearchBar';
 
 // Accept searchParams from the URL
-export default async function Dashboard({ searchParams }: { searchParams: { search?: string } }) {
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ search?: string }> }) {
   await auth.protect();
   const policies = await db.select().from(retentionPolicies);
   const logs = await db.select().from(auditLogs); 
   const displayLogs = logs.reverse();
 
   // Search Filtering Logic
-  const searchTerm = searchParams?.search;
+  const resolvedParams = await searchParams;
+  const searchTerm = resolvedParams?.search;
   const files = await db.select()
     .from(mockFiles)
     .where(
