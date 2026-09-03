@@ -2,23 +2,44 @@
 
 import { db } from '../db';
 import { retentionPolicies, mockFiles, auditLogs } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { auth } from '@clerk/nextjs/server';
 
 export async function createPolicy(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
   const fileType = formData.get('fileType') as string;
   const retentionDays = parseInt(formData.get('retentionDays') as string);
-  await db.insert(retentionPolicies).values({ userId: "test_user_1", fileType, retentionDays });
+  
+  await db.insert(retentionPolicies).values({ 
+    userId,
+    fileType, 
+    retentionDays 
+  });
   revalidatePath('/');
 }
 
 export async function deletePolicy(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
   const id = parseInt(formData.get('id') as string);
-  await db.delete(retentionPolicies).where(eq(retentionPolicies.id, id));
+  
+  await db.delete(retentionPolicies).where(
+    and(
+      eq(retentionPolicies.id, id),
+      eq(retentionPolicies.userId, userId)
+    )
+  );
   revalidatePath('/');
 }
 
 export async function generateMockFile(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
   const fileType = formData.get('fileType') as string;
   
   const pastDate = new Date();
@@ -27,7 +48,7 @@ export async function generateMockFile(formData: FormData) {
   const randomSize = Math.floor(Math.random() * 20) + 1;
 
   await db.insert(mockFiles).values({
-    userId: "Sumit",
+    userId,
     fileName: `old_${fileType.toLowerCase()}_${Math.floor(Math.random() * 1000)}.png`,
     fileType,
     fileSize: randomSize,
@@ -38,33 +59,49 @@ export async function generateMockFile(formData: FormData) {
 }
 
 export async function manualRunEngine() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
   await fetch('http://localhost:3000/api/cron', { method: 'GET' });
   revalidatePath('/');
 }
 
 export async function clearLogs() {
-  await db.delete(auditLogs);
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  await db.delete(auditLogs).where(eq(auditLogs.userId, userId));
   revalidatePath('/');
 }
 
 export async function togglePolicy(formData: FormData) {
-  const id = parseInt(formData.get('id') as string);
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
 
+  const id = parseInt(formData.get('id') as string);
   const currentStatus = formData.get('isActive') === 'true'; 
+  
   await db.update(retentionPolicies)
     .set({ isActive: !currentStatus })
-    .where(eq(retentionPolicies.id, id));
+    .where(
+      and(
+        eq(retentionPolicies.id, id),
+        eq(retentionPolicies.userId, userId)
+      )
+    );
 
   revalidatePath('/');
 }
 
 export async function resetWorkspace() {
-  // Wipes all mock files and audit logs from the database
-  await db.delete(mockFiles);
-  await db.delete(auditLogs);
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  await db.delete(mockFiles).where(eq(mockFiles.userId, userId));
+  await db.delete(auditLogs).where(eq(auditLogs.userId, userId));
   
-  // Log the action itself so the user knows what happened
   await db.insert(auditLogs).values({
+    userId,
     message: `⚠️ Workspace environment was manually reset by admin.`
   });
 

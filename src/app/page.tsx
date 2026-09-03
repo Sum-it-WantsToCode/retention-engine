@@ -10,7 +10,9 @@ import { ilike, or, eq, and } from 'drizzle-orm';
 import SearchBar from '../components/SearchBar';
 
 // Accept searchParams from the URL
-export default async function Dashboard({ searchParams }: { searchParams: { search?: string } }) {
+export default async function Dashboard(props: { searchParams: Promise<{ search?: string }> }) {
+  const searchParams = await props.searchParams;
+  
   // Grab the secure ID of the currently logged-in user
   const { userId } = await auth();
 
