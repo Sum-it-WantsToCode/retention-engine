@@ -6,28 +6,34 @@ import Navbar from '../components/Navbar';
 import StatCard from '../components/StatCard';
 import StorageBar from '../components/StorageBar';
 import PolicyBadge from '../components/PolicyBadge';
-import { ilike, or } from 'drizzle-orm';
+import { ilike, or, eq, and } from 'drizzle-orm';
 import SearchBar from '../components/SearchBar';
 
 // Accept searchParams from the URL
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ search?: string }> }) {
-  await auth.protect();
-  const policies = await db.select().from(retentionPolicies);
-  const logs = await db.select().from(auditLogs); 
+export default async function Dashboard({ searchParams }: { searchParams: { search?: string } }) {
+  // Grab the secure ID of the currently logged-in user
+  const { userId } = await auth();
+
+  // Fetch only THIS user's policies and logs
+  const policies = await db.select().from(retentionPolicies).where(eq(retentionPolicies.userId, userId!));
+  const logs = await db.select().from(auditLogs).where(eq(auditLogs.userId, userId!)); 
   const displayLogs = logs.reverse();
 
-  // Search Filtering Logic
-  const resolvedParams = await searchParams;
-  const searchTerm = resolvedParams?.search;
+  // Search Filtering Logic WITH strict user isolation
+  const searchTerm = searchParams?.search;
+  
   const files = await db.select()
     .from(mockFiles)
     .where(
-      searchTerm 
-        ? or(
-            ilike(mockFiles.fileName, `%${searchTerm}%`),
-            ilike(mockFiles.fileType, `%${searchTerm}%`)
-          )
-        : undefined
+      and(
+        eq(mockFiles.userId, userId!),
+        searchTerm 
+          ? or(
+              ilike(mockFiles.fileName, `%${searchTerm}%`),
+              ilike(mockFiles.fileType, `%${searchTerm}%`)
+            )
+          : undefined
+      )
     );
 
   // JavaScript Math to calculate our dashboard stats
