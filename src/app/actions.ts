@@ -62,7 +62,12 @@ export async function manualRunEngine() {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  await fetch('http://localhost:3000/api/cron', { method: 'GET' });
+  // Check if we are on Vercel or Localhost
+  const baseUrl = process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}` 
+    : 'http://localhost:3000';
+
+  await fetch(`${baseUrl}/api/cron`, { method: 'GET' });
   revalidatePath('/');
 }
 
