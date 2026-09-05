@@ -63,14 +63,26 @@ export async function manualRunEngine() {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  // Dynamically read the exact domain the user is currently on
   const headersList = await headers();
   const host = headersList.get('host');
   const protocol = host?.includes('localhost') ? 'http' : 'https';
-  
   const baseUrl = `${protocol}://${host}`;
 
-  await fetch(`${baseUrl}/api/cron`, { method: 'GET' });
+  // Grab the secure Clerk session cookie
+  const cookieHeader = headersList.get('cookie') || '';
+
+  const res = await fetch(`${baseUrl}/api/cron`, { 
+    method: 'GET',
+    headers: {
+      'Cookie': cookieHeader
+    }
+  });
+
+  // If the API route fails, log it to the Vercel dashboard so we can see it!
+  if (!res.ok) {
+    console.error("Cron execution failed:", await res.text());
+  }
+
   revalidatePath('/');
 }
 
