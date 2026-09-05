@@ -1,5 +1,6 @@
 'use server'
 
+import { headers } from 'next/headers';
 import { db } from '../db';
 import { retentionPolicies, mockFiles, auditLogs } from '../db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -62,10 +63,12 @@ export async function manualRunEngine() {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  // Check if we are on Vercel or Localhost
-  const baseUrl = process.env.VERCEL_URL 
-    ? `https://${process.env.VERCEL_URL}` 
-    : 'http://localhost:3000';
+  // Dynamically read the exact domain the user is currently on
+  const headersList = await headers();
+  const host = headersList.get('host');
+  const protocol = host?.includes('localhost') ? 'http' : 'https';
+  
+  const baseUrl = `${protocol}://${host}`;
 
   await fetch(`${baseUrl}/api/cron`, { method: 'GET' });
   revalidatePath('/');
