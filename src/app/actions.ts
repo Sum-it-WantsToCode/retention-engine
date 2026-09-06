@@ -63,12 +63,19 @@ export async function manualRunEngine() {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
+  // 1. Log to the developer terminal
+  console.log("⚡ [Engine] Manual execution triggered...");
+
+  // 2. NEW: Write a log directly to your application's UI database!
+  await db.insert(auditLogs).values({
+    userId,
+    message: "⚡ Manual engine execution triggered by user."
+  });
+
   const headersList = await headers();
   const host = headersList.get('host');
   const protocol = host?.includes('localhost') ? 'http' : 'https';
   const baseUrl = `${protocol}://${host}`;
-
-  // Grab the secure Clerk session cookie
   const cookieHeader = headersList.get('cookie') || '';
 
   const res = await fetch(`${baseUrl}/api/cron`, { 
@@ -78,11 +85,43 @@ export async function manualRunEngine() {
     }
   });
 
-  // If the API route fails, log it to the Vercel dashboard so we can see it!
+// 3. Determine the log message based on the result
+  let logMessage = "";
+
   if (!res.ok) {
-    console.error("Cron execution failed:", await res.text());
+    const errorText = await res.text();
+    console.error("❌ [Engine] Execution failed:", errorText);
+    logMessage = `❌ Engine execution failed: ${errorText}`;
+  } else {
+    // Read the exact response sent back by your /api/cron route
+    let apiResponse = await res.text();
+    
+    // Safely attempt to parse it if your API route returns JSON (e.g., { message: "Deleted 5 files" })
+    try {
+      const parsedData = JSON.parse(apiResponse);
+      if (parsedData.message) {
+        apiResponse = parsedData.message;
+      }
+    } catch (e) {}
+    console.log(`✅ [Engine] ${apiResponse}`);
+    logMessage = `✅ ${apiResponse}`;
   }
 
+  await db.insert(auditLogs).values({ // Does an insert into the auditLogs
+    userId,
+    message: logMessage
+  });
+
+  revalidatePath('/');  // Instantly refreshes the UI
+}
+
+export async function clearAllData() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  // Deletes all mock files associated with this specific user
+  await db.delete(mockFiles).where(eq(mockFiles.userId, userId));
+  
   revalidatePath('/');
 }
 

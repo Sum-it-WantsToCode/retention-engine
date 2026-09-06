@@ -9,6 +9,8 @@ import PolicyBadge from '../components/PolicyBadge';
 import { ilike, or, eq, and } from 'drizzle-orm';
 import SearchBar from '../components/SearchBar';
 
+export const dynamic = 'force-dynamic';
+
 // Accept searchParams from the URL
 export default async function Dashboard(props: { searchParams: Promise<{ search?: string }> }) {
   const searchParams = await props.searchParams;
