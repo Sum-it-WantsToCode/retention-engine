@@ -60,9 +60,9 @@ export default async function Dashboard(props: { searchParams: Promise<{ search?
         {/* Analytics Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard title="Active Rules" value={totalPolicies} icon="🛡️" href="#policies-section" />
-          <StatCard title="Files Monitored" value={totalFiles} icon="📂" />
+          <StatCard title="Files Monitored" value={totalFiles} icon="📂" href="#file-system-section" />
           <StatCard title="Storage Used" value={`${totalStorageMb} MB`} icon="💾" />
-          <StatCard title="Engine Actions" value={totalEngineRuns} icon="⚡" />
+          <StatCard title="Engine Actions" value={totalEngineRuns} icon="⚡" href="#engine-activity-section" />
         </div>
 
         {/* Storage Capacity Progress Bar */}
@@ -126,6 +126,7 @@ export default async function Dashboard(props: { searchParams: Promise<{ search?
         {/* Simulated File System */} 
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-4">
+            <section id="file-system-section" className="mt-8"/>
             <h2 className="text-xl font-semibold">Simulated File System</h2>
             <div className="flex gap-2">
               <form action={generateMockFile}>
@@ -184,6 +185,7 @@ export default async function Dashboard(props: { searchParams: Promise<{ search?
         {/* Engine Activity Terminal */}
         <div className="bg-gray-900 text-green-400 p-6 rounded-lg shadow-sm font-mono text-sm">
           <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+            <section id="engine-activity-section" className="mt-8"/>
             <h2 className="text-lg font-semibold text-white">Engine Activity Terminal</h2>
               {/* Export CSV Button */}
               <a href="/api/export" className="text-blue-400 hover:text-blue-300 text-xs px-2 py-1 bg-gray-800 rounded border border-gray-700">
