@@ -59,7 +59,7 @@ export default async function Dashboard(props: { searchParams: Promise<{ search?
 
         {/* Analytics Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard title="Active Rules" value={totalPolicies} icon="🛡️" />
+          <StatCard title="Active Rules" value={totalPolicies} icon="🛡️" href="#policies-section" />
           <StatCard title="Files Monitored" value={totalFiles} icon="📂" />
           <StatCard title="Storage Used" value={`${totalStorageMb} MB`} icon="💾" />
           <StatCard title="Engine Actions" value={totalEngineRuns} icon="⚡" />
@@ -87,6 +87,7 @@ export default async function Dashboard(props: { searchParams: Promise<{ search?
           
           {/* Active Policies List */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <section id="policies-section" className="mt-12" />
             <h2 className="text-xl font-semibold mb-4">Active Policies</h2>
             <ul className="space-y-3">
               {policies.map((policy) => (
