@@ -195,11 +195,13 @@ export default async function Dashboard(props: { searchParams: Promise<{ search?
           
           <div className="space-y-2 h-40 overflow-y-auto">
             {displayLogs.length === 0 ? (
-              <EmptyState 
-                icon="⚡" 
-                title="No engine activity yet" 
-                description="Run the engine manually or wait for the nightly cron job to see logs appear here." 
-              />
+              <div className="flex flex-col justify-center items-center h-full border-2 border-dashed border-gray-700 rounded-xl p-8 transition-all hover:bg-gray-800/50">
+                <span className="text-3xl grayscale opacity-50 mb-3">⚡</span>
+                <p className="text-gray-400 font-semibold mb-1">No engine activity yet</p>
+                <p className="text-gray-500 text-center max-w-sm">
+                  Run the engine manually or wait for the nightly cron job to see logs appear here.
+                </p>
+              </div>
             ) : (
               displayLogs.map((log) => (
                 <div key={log.id} className="flex gap-4">
