@@ -4,6 +4,7 @@ import { retentionPolicies, mockFiles, auditLogs } from '../db/schema';
 import { createPolicy, deletePolicy, generateMockFile, manualRunEngine, clearLogs, togglePolicy, resetWorkspace } from './actions';
 import Navbar from '../components/Navbar';
 import StatCard from '../components/StatCard';
+import EmptyState from '../components/EmptyState';
 import StorageBar from '../components/StorageBar';
 import PolicyBadge from '../components/PolicyBadge';
 import { ilike, or, eq, and } from 'drizzle-orm';
@@ -86,47 +87,55 @@ export default async function Dashboard(props: { searchParams: Promise<{ search?
           </div>
           
           {/* Active Policies List */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <section id="policies-section" className="mt-12" />
-            <h2 className="text-xl font-semibold mb-4">Active Policies</h2>
-            <ul className="space-y-3">
-              {policies.map((policy) => (
-                <li key={policy.id} className="p-3 bg-gray-50 border rounded-md flex justify-between items-center transition hover:bg-gray-100">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-gray-900">{policy.fileType}</span>
-                      <PolicyBadge isActive={policy.isActive} />
-                    </div>
-                    <span className="text-gray-600 text-sm">Delete after {policy.retentionDays} days</span>
-                  </div>
-                  
-                  {/* Action Buttons Container */}
-                  <div className="flex gap-2">
-                    <form action={togglePolicy}>
-                      <input type="hidden" name="id" value={policy.id} />
-                      <input type="hidden" name="isActive" value={policy.isActive.toString()} />
-                      <button type="submit" className="text-gray-600 hover:text-gray-900 text-sm px-3 py-1 bg-white border border-gray-200 shadow-sm rounded transition">
-                        {policy.isActive ? 'Pause' : 'Resume'}
-                      </button>
-                    </form>
-                    
-                    <form action={deletePolicy}>
-                      <input type="hidden" name="id" value={policy.id} />
-                      <button type="submit" className="text-red-600 hover:text-red-800 text-sm px-3 py-1 bg-red-50 hover:bg-red-100 rounded transition">
-                        Delete
-                      </button>
-                    </form>
-                  </div>
-                </li>
-              ))}
-              </ul>
-          </div>
+          <section id="policies-section" className="mt-12">
+            {policies.length === 0 ? (
+              <EmptyState 
+                icon="🛡️" 
+                title="No active rules" 
+                description="Create a retention policy above to start automating your workspace cleanup." 
+              />
+            ) : (
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <h2 className="text-xl font-semibold mb-4">Active Policies</h2>
+                <ul className="space-y-3">
+                  {policies.map((policy) => (
+                    <li key={policy.id} className="p-3 bg-gray-50 border rounded-md flex justify-between items-center transition hover:bg-gray-100">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-bold text-gray-900">{policy.fileType}</span>
+                          <PolicyBadge isActive={policy.isActive} />
+                        </div>
+                        <span className="text-gray-600 text-sm">Delete after {policy.retentionDays} days</span>
+                      </div>
+                      
+                      {/* Action Buttons Container */}
+                      <div className="flex gap-2">
+                        <form action={togglePolicy}>
+                          <input type="hidden" name="id" value={policy.id} />
+                          <input type="hidden" name="isActive" value={policy.isActive.toString()} />
+                          <button type="submit" className="text-gray-600 hover:text-gray-900 text-sm px-3 py-1 bg-white border border-gray-200 shadow-sm rounded transition">
+                            {policy.isActive ? 'Pause' : 'Resume'}
+                          </button>
+                        </form>
+                        
+                        <form action={deletePolicy}>
+                          <input type="hidden" name="id" value={policy.id} />
+                          <button type="submit" className="text-red-600 hover:text-red-800 text-sm px-3 py-1 bg-red-50 hover:bg-red-100 rounded transition">
+                            Delete
+                          </button>
+                        </form>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
         </div>
-
+        
         {/* Simulated File System */} 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <section id="file-system-section" className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-4">
-            <section id="file-system-section" className="mt-8"/>
             <h2 className="text-xl font-semibold">Simulated File System</h2>
             <div className="flex gap-2">
               <form action={generateMockFile}>
@@ -149,13 +158,14 @@ export default async function Dashboard(props: { searchParams: Promise<{ search?
           </div>
 
           <SearchBar />
-         
+          
           {/* Professional Empty State */}
           {files.length === 0 ? (
-            <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-              <p className="text-lg mb-1">No files in workspace</p>
-              <p className="text-sm">Click "+ Mock File" to generate test data.</p>
-            </div>
+            <EmptyState 
+              icon="📂" 
+              title="File system is empty" 
+              description="Click '+ Old Screenshot' above to generate test files for the engine to scan." 
+            />
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {files.map((file) => (
@@ -168,24 +178,11 @@ export default async function Dashboard(props: { searchParams: Promise<{ search?
               ))}
             </div>
           )}
-        
-        
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {files.map((file) => (
-              <div key={file.id} className="p-4 border rounded bg-gray-50 text-center">
-                <div className="text-3xl mb-2">📄</div>
-                <div className="font-medium text-sm truncate">{file.fileName}</div>
-                <div className="text-xs text-gray-500 mt-1">{file.uploadedAt.toLocaleDateString()}</div>
-                <div className="text-xs font-bold text-blue-600 mt-1">{file.fileSize} MB</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        </section>
         
         {/* Engine Activity Terminal */}
-        <div className="bg-gray-900 text-green-400 p-6 rounded-lg shadow-sm font-mono text-sm">
+        <section id="engine-activity-section" className="bg-gray-900 text-green-400 p-6 rounded-lg shadow-sm font-mono text-sm mt-8">
           <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-            <section id="engine-activity-section" className="mt-8"/>
             <h2 className="text-lg font-semibold text-white">Engine Activity Terminal</h2>
               {/* Export CSV Button */}
               <a href="/api/export" className="text-blue-400 hover:text-blue-300 text-xs px-2 py-1 bg-gray-800 rounded border border-gray-700">
@@ -198,7 +195,11 @@ export default async function Dashboard(props: { searchParams: Promise<{ search?
           
           <div className="space-y-2 h-40 overflow-y-auto">
             {displayLogs.length === 0 ? (
-              <p className="text-gray-500">Waiting for engine cycles...</p>
+              <EmptyState 
+                icon="⚡" 
+                title="No engine activity yet" 
+                description="Run the engine manually or wait for the nightly cron job to see logs appear here." 
+              />
             ) : (
               displayLogs.map((log) => (
                 <div key={log.id} className="flex gap-4">
@@ -208,7 +209,7 @@ export default async function Dashboard(props: { searchParams: Promise<{ search?
               ))
             )}
           </div>
-        </div>
+        </section>
 
       </div>
     </main>
