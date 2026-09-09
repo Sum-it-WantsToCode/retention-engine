@@ -49,7 +49,7 @@ export default async function Dashboard(props: { searchParams: Promise<{ search?
   const STORAGE_LIMIT_MB = 200;
 
   return (
-    <main className="min-h-screen bg-gray-50 text-gray-900 pb-12">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 pb-12 transition-colors duration-200">
       <Navbar /> 
       
       <div className="p-8 max-w-4xl mx-auto space-y-8">
